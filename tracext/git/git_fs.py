@@ -262,6 +262,7 @@ class CsetPropertyRenderer(Component):
         return (name in ('Parents',
                          'Children',
                          'Branches',
+                         'Tags',
                          'git-committer',
                          'git-author',
                          ) and mode == 'revprop') and 4 or 0
@@ -285,11 +286,28 @@ class CsetPropertyRenderer(Component):
                 return tag.a(sha, class_="missing changeset",
                              title=to_unicode(e), rel="nofollow")
 
+        def rev_link(rev, label=None):
+            try:
+                reponame = context.resource.parent.id
+                repos = self.env.get_repository(reponame)
+
+                return tag.a(label, class_="changeset",
+                             title=shorten_line(label),
+                             href=context.href.browser(repos.reponame) + '?rev=%s' % rev)
+
+            except Exception, e:
+                return tag.a(sha, class_="missing tag",
+                             title=to_unicode(e), rel="nofollow")
+
         if name == 'Branches':
             branches = props[name]
 
             # simple non-merge commit
             return tag(*intersperse(', ', (sha_link(rev, label) for label, rev in branches)))
+
+        if name == 'Tags':
+            tags = props[name]
+            return tag(*intersperse(', ', (rev_link(tag, tag) for tag in tags)))
 
         elif name in ('Parents', 'Children'):
             revs = props[name] # list of commit ids
@@ -642,6 +660,10 @@ class GitChangeset(Changeset):
         branches = list(self.repos.git.get_branch_contains(self.rev, resolve=True))
         if branches:
             properties['Branches'] = branches
+
+        tags = list(self.repos.git.get_tag_contains(self.rev))
+        if tags:
+            properties['Tags'] = tags
 
         return properties
 
