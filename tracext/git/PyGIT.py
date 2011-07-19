@@ -560,6 +560,12 @@ class Storage(object):
     def get_tags(self):
         return [ e.strip() for e in self.repo.tag("-l").splitlines() ]
 
+    def get_tag_contains(self, sha):
+        tags = [ e.strip() for e in \
+                self.repo.name_rev("--tags", "--name-only", sha).splitlines() \
+                if e.find('^') == e.find('undefined') == e.find('~') == -1 ]
+        return tags
+
     def ls_tree(self, rev, path=""):
         rev = rev and str(rev) or 'HEAD' # paranoia
 

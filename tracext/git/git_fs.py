@@ -679,6 +679,10 @@ class GitChangeset(Changeset):
         return [ (k, v == _rev)
                  for k, v in self.repos.git.get_branch_contains(_rev, resolve=True) ]
 
+    def get_tag_contains(self):
+        _rev = self.rev
+        return self.repos.git.get_tag_contains(_rev)
+
 class GitwebProjectsRepositoryProvider(Component):
     implements(IRepositoryProvider)
 
