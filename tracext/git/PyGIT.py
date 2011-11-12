@@ -229,6 +229,8 @@ class Storage(object):
             # pass bytestrings as-is w/o any conversion
             self._fs_to_unicode = self._fs_from_unicode = lambda s: s
 
+        initialize_repo = False
+
         # simple sanity checking
         __git_file_path = partial(os.path.join, git_dir)
         if not all(map(os.path.exists,
@@ -238,12 +240,19 @@ class Storage(object):
             if os.path.exists(__git_file_path('.git')):
                 self.logger.error("entry '.git' found in '%s'"
                                   " -- maybe use that folder instead..." % git_dir)
-            raise GitError("GIT control files not found, maybe wrong directory?")
+                raise GitError("GIT control files not found, maybe wrong directory?")
+            else:
+                initialize_repo = True
 
         self.logger.debug("PyGIT.Storage instance %d constructed" % id(self))
 
         self.repo = GitCore(git_dir, git_bin=git_bin)
-
+        
+        # automatically initialize git repository 
+        if initialize_repo:
+            self.logger.info("Git Repository [%s] is initialized with bare style." % git_dir)
+            self.repo.init('--bare', git_dir)
+        
         self.commit_encoding = None
 
         # caches
